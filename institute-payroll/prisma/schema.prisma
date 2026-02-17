@@ -35,6 +35,8 @@ model Class {
   id                 Int      @id @default(autoincrement())
   name               String
   feePerStudent      Float    @default(0) // Class fee per student (e.g., 1000)
+  tuteCostPerStudent Float    @default(0) // Tute cost per student
+  postalFeePerStudent Float   @default(0) // Postal fee per student
   instituteFeePercentage Float @default(0) // Percentage of total collection (e.g., 20)
   createdAt          DateTime @default(now())
 

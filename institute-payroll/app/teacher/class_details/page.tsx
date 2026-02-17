@@ -42,21 +42,42 @@ interface Teacher {
 export default function ClassDetailsPage() {
     const [teacher, setTeacher] = useState<Teacher | null>(null);
     const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
         const teacherData = sessionStorage.getItem("teacher");
         if (teacherData) {
-            const parsedTeacher = JSON.parse(teacherData);
-            fetchTeacherDetails(parsedTeacher.id);
+            try {
+                const parsedTeacher = JSON.parse(teacherData);
+                if (parsedTeacher?.id) {
+                    fetchTeacherDetails(parsedTeacher.id);
+                } else {
+                    setError("Invalid teacher data in session");
+                    setLoading(false);
+                }
+            } catch (err) {
+                console.error("Error parsing teacher data:", err);
+                setError("Failed to load teacher information");
+                setLoading(false);
+            }
+        } else {
+            setError("No teacher session found. Please login again.");
+            setLoading(false);
         }
     }, []);
 
     const fetchTeacherDetails = async (teacherId: number) => {
         try {
             const data = await getTeacherById(teacherId);
-            setTeacher(data as any);
+            if (data && typeof data === 'object') {
+                setTeacher(data as any);
+                setError(null);
+            } else {
+                setError("Invalid data received from server");
+            }
         } catch (error) {
             console.error("Error fetching class details:", error);
+            setError("Failed to fetch class details. Please try again.");
         } finally {
             setLoading(false);
         }
@@ -94,6 +115,21 @@ export default function ClassDetailsPage() {
                         <div className="animate-spin rounded-full h-16 w-16 border-4 border-purple-100 border-b-purple-600" />
                         <p className="text-slate-500 font-bold mt-6 text-xl tracking-tight text-center">Loading class information...</p>
                     </div>
+                ) : error ? (
+                    <div className="flex flex-col items-center justify-center py-32 bg-white rounded-[3rem] shadow-2xl shadow-slate-100 border border-slate-100">
+                        <div className="bg-red-50 p-10 rounded-[2.5rem] mb-8 border border-red-100">
+                            <Info className="h-16 w-16 text-red-400" />
+                        </div>
+                        <h2 className="text-3xl font-black text-slate-900 mb-3 tracking-tight">Error Loading Data</h2>
+                        <p className="text-slate-500 font-medium max-w-sm text-center text-lg leading-relaxed mb-6">
+                            {error}
+                        </p>
+                        <Link href="/teacher/login">
+                            <Button className="bg-purple-600 hover:bg-purple-700 text-white font-bold px-8 py-6 rounded-2xl">
+                                Back to Login
+                            </Button>
+                        </Link>
+                    </div>
                 ) : teacher && teacher.rates && teacher.rates.length > 0 ? (
                     <div className="grid gap-8 md:grid-cols-2">
                         {teacher.rates.map((rate) => (
@@ -102,7 +138,7 @@ export default function ClassDetailsPage() {
                                     <div className="flex justify-between items-start">
                                         <div>
                                             <CardTitle className="text-3xl font-black text-slate-900 tracking-tight mb-1">
-                                                {rate.class.name}
+                                                {rate?.class?.name ?? 'Unknown Class'}
                                             </CardTitle>
                                             <div className="flex items-center gap-2 text-purple-600 bg-purple-50 px-3 py-1 rounded-full text-xs font-black uppercase tracking-widest w-fit border border-purple-100">
                                                 <GraduationCap className="h-3 w-3" />
@@ -120,7 +156,7 @@ export default function ClassDetailsPage() {
                                             icon={<Users className="h-4 w-4" />}
                                             label="Class Fee"
                                             sinhalaLabel="පන්ති ගාස්තුව"
-                                            value={`Rs. ${rate.class.feePerStudent.toLocaleString()}`}
+                                            value={`Rs. ${(rate?.class?.feePerStudent ?? 0).toLocaleString()}`}
                                             subtext="per student"
                                             color="blue"
                                         />
@@ -128,7 +164,7 @@ export default function ClassDetailsPage() {
                                             icon={<Percent className="h-4 w-4" />}
                                             label="Institute Fee"
                                             sinhalaLabel="ආයතන ගාස්තුව"
-                                            value={`${rate.class.instituteFeePercentage}%`}
+                                            value={`${rate?.class?.instituteFeePercentage ?? 0}%`}
                                             subtext="of collection"
                                             color="amber"
                                         />
@@ -136,7 +172,7 @@ export default function ClassDetailsPage() {
                                             icon={<Mail className="h-4 w-4" />}
                                             label="Postal Fee"
                                             sinhalaLabel="තැපැල් ගාස්තුව"
-                                            value={`Rs. ${rate.class.postalFeePerStudent.toLocaleString()}`}
+                                            value={`Rs. ${(rate?.class?.postalFeePerStudent ?? 0).toLocaleString()}`}
                                             subtext="per student"
                                             color="rose"
                                         />
@@ -144,7 +180,7 @@ export default function ClassDetailsPage() {
                                             icon={<Info className="h-4 w-4" />}
                                             label="Tute Cost"
                                             sinhalaLabel="නිබන්ධන පිරිවැය"
-                                            value={`Rs. ${rate.class.tuteCostPerStudent.toLocaleString()}`}
+                                            value={`Rs. ${(rate?.class?.tuteCostPerStudent ?? 0).toLocaleString()}`}
                                             subtext="per student"
                                             color="emerald"
                                         />
@@ -152,7 +188,7 @@ export default function ClassDetailsPage() {
                                             icon={<Star className="h-4 w-4" />}
                                             label="Your Rate"
                                             sinhalaLabel="ඔබේ ප්‍රතිශතය"
-                                            value={`${rate.percentage}%`}
+                                            value={`${rate?.percentage ?? 0}%`}
                                             subtext="your share"
                                             color="indigo"
                                         />
@@ -162,7 +198,7 @@ export default function ClassDetailsPage() {
                                         <div className="flex items-center justify-between bg-slate-900 text-white p-6 rounded-[2rem] shadow-xl shadow-slate-200">
                                             <div>
                                                 <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 mb-1">Teacher Earnings (හිමිකම)</p>
-                                                <p className="text-2xl font-black">{rate.percentage}% Net</p>
+                                                <p className="text-2xl font-black">{rate?.percentage ?? 0}% Net</p>
                                             </div>
                                             <div className="text-right">
                                                 <p className="text-xs font-bold text-slate-400 mb-1">Deducted from gross</p>
