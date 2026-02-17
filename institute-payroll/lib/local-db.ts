@@ -95,10 +95,17 @@ export class LocalDB {
         localStorage.setItem(key, JSON.stringify(data));
     }
 
+    constructor() {
+        this.init();
+    }
+
     // Initialize
     init() {
         if (typeof window === "undefined") return;
-        if (!localStorage.getItem(DB_KEYS.USERS)) {
+
+        // Check if users exist, if not or empty, seed them
+        const users = this.get<User>(DB_KEYS.USERS);
+        if (users.length === 0) {
             this.set(DB_KEYS.USERS, INITIAL_USERS);
         }
     }

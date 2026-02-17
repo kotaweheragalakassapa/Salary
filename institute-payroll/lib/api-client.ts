@@ -1,11 +1,7 @@
 
 import { db, User, Teacher, Class, DailyCollection, Deduction, TeacherRate } from "./local-db";
 
-// Load Initial Data
-if (typeof window !== "undefined") {
-    const localDB = new (require("./local-db").LocalDB)();
-    localDB.init();
-}
+// Initial Data handled by LocalDB constructor
 
 /**
  * Mocks the API Response structure
