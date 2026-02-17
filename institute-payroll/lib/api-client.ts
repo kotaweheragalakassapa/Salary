@@ -64,6 +64,7 @@ export const deleteClass = (id: number) => fetchApi(`/api/classes/${id}`, { meth
 
 // Daily Collection
 export const addDailyCollection = (data: any) => fetchApi("/api/collections", { method: "POST", body: JSON.stringify(data) });
+export const updateDailyCollection = (id: number, data: any) => fetchApi(`/api/collections/${id}`, { method: "PATCH", body: JSON.stringify(data) });
 export const getDailyCollections = () => fetchApi("/api/collections");
 export const getCollectionsByDate = (date: string) => fetchApi(`/api/collections?date=${date}`);
 export const deleteDailyCollection = (id: number) => fetchApi(`/api/collections/${id}`, { method: "DELETE" });
