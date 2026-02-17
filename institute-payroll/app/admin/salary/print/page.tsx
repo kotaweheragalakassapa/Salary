@@ -5,6 +5,8 @@ import { useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Printer } from "lucide-react";
 
+export const dynamic = 'force-dynamic';
+
 interface SalaryData {
     teacher: { id: number; name: string };
     period: { start: string; end: string };
