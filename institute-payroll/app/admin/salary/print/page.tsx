@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Printer } from "lucide-react";
@@ -39,6 +39,14 @@ interface SalaryData {
 }
 
 export default function SalarySlipPage() {
+    return (
+        <Suspense fallback={<div className="p-10 text-center text-slate-500">Loading Payment System...</div>}>
+            <SalarySlipContent />
+        </Suspense>
+    );
+}
+
+function SalarySlipContent() {
     const searchParams = useSearchParams();
     const teacherId = searchParams.get("teacherId");
     const month = searchParams.get("month"); // YYYY-MM
