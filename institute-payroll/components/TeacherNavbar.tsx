@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { LayoutDashboard, BookOpen, User, CreditCard, LogOut, Menu, X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -14,11 +14,12 @@ interface TeacherNavbarProps {
 
 export function TeacherNavbar({ teacherName, teacherImage }: TeacherNavbarProps) {
     const pathname = usePathname();
+    const router = useRouter();
     const [isMenuOpen, setIsMenuOpen] = useState(false);
 
     const handleLogout = () => {
         sessionStorage.removeItem("teacher");
-        window.location.href = "/teacher/login";
+        router.push("/teacher/login");
     };
 
     const navItems = [

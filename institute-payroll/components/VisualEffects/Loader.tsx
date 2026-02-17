@@ -33,7 +33,7 @@ export default function Loader() {
                         >
                             <div className="absolute inset-0 bg-primary/20 blur-3xl rounded-full" />
                             <Image
-                                src="/uploads/Dev-logo.png"
+                                src={`${process.env.BASE_PATH || ''}/uploads/Dev-logo.png`}
                                 alt="GK Software Developers"
                                 width={128}
                                 height={128}

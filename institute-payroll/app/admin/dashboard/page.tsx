@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { usePathname, useRouter } from "next/navigation";
 import { getSalaryReport, getTeachers } from "@/lib/api-client";
 import { Navbar } from "@/components/Navbar";
 import { Users, BookOpen, Banknote, FileText, TrendingUp, ArrowRight, Shield, Activity, PieChart } from "lucide-react";
@@ -9,6 +10,7 @@ import { GlassCard } from "@/components/VisualEffects/GlassCard";
 import { PageTransition, StaggerContainer, StaggerItem } from "@/components/VisualEffects/PageTransitions";
 
 export default function DashboardPage() {
+    const router = useRouter();
     const [stats, setStats] = useState({
         totalCollection: 0,
         grossPay: 0,
@@ -149,7 +151,7 @@ export default function DashboardPage() {
                             <StaggerItem>
                                 <GlassCard
                                     className="p-10 group cursor-pointer hover:bg-blue-600 transition-all duration-500 h-full"
-                                    onClick={() => window.location.href = '/admin/teachers'}
+                                    onClick={() => router.push('/admin/teachers')}
                                 >
                                     <div className="bg-blue-600 text-white p-4 rounded-3xl mb-8 shadow-xl shadow-blue-200 group-hover:bg-white group-hover:text-blue-600 transition-colors transform group-hover:rotate-6">
                                         <Users className="h-8 w-8" />
@@ -168,7 +170,7 @@ export default function DashboardPage() {
                             <StaggerItem>
                                 <GlassCard
                                     className="p-10 group cursor-pointer bg-slate-900 border-0 shadow-2xl group-hover:bg-green-600 transition-all duration-500 h-full"
-                                    onClick={() => window.location.href = '/admin/salary'}
+                                    onClick={() => router.push('/admin/salary')}
                                 >
                                     <div className="bg-green-500 text-white p-4 rounded-3xl mb-8 shadow-xl shadow-green-900/40 group-hover:bg-white group-hover:text-green-600 transition-colors transform group-hover:-rotate-6">
                                         <FileText className="h-8 w-8" />
@@ -187,7 +189,7 @@ export default function DashboardPage() {
                             <StaggerItem>
                                 <GlassCard
                                     className="p-10 group cursor-pointer hover:bg-purple-600 transition-all duration-500 h-full"
-                                    onClick={() => window.location.href = '/admin/teacher-credentials'}
+                                    onClick={() => router.push('/admin/teacher-credentials')}
                                     gradient
                                 >
                                     <div className="bg-purple-600 text-white p-4 rounded-3xl mb-8 shadow-xl shadow-purple-200 group-hover:bg-white group-hover:text-purple-600 transition-colors transform group-hover:rotate-6">
