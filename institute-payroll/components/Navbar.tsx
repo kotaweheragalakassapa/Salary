@@ -51,7 +51,7 @@ export function Navbar() {
                             <div className="relative">
                                 <div className="absolute -inset-1.5 bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl blur opacity-25 group-hover:opacity-75 transition duration-500"></div>
                                 <div className="relative bg-white p-1.5 rounded-xl shadow-lg group-hover:rotate-6 transition-transform duration-300">
-                                    <img src="/uploads/logo.png" alt="Nexus" className="h-8 w-8 object-contain" />
+                                    <img src={`${process.env.BASE_PATH || ''}/uploads/logo.png`} alt="Nexus" className="h-8 w-8 object-contain" />
                                 </div>
                             </div>
                             <div className="hidden sm:block">

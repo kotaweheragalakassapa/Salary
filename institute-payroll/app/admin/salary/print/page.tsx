@@ -101,7 +101,7 @@ function SalarySlipContent() {
                 <div key={index} className={`w-full max-w-[210mm] print:max-w-full print:w-full mx-auto bg-white shadow-2xl print:shadow-none overflow-hidden rounded-sm relative mb-12 print:mb-0 ${index < allData.length - 1 ? 'print:page-break-after' : ''}`} id="salary-slip">
                     {/* Watermark */}
                     <div className="absolute inset-0 flex items-center justify-center opacity-[0.03] pointer-events-none z-0 print:opacity-[0.05]">
-                        <img src="/uploads/logo.png" alt="Watermark" className="w-[80%] h-auto grayscale" />
+                        <img src={`${process.env.BASE_PATH || ''}/uploads/logo.png`} alt="Watermark" className="w-[80%] h-auto grayscale" />
                     </div>
 
                     {/* Visual Accent */}
@@ -126,7 +126,7 @@ function SalarySlipContent() {
 
                                 {/* Center: Logo */}
                                 <div className="flex-shrink-0 flex items-center justify-center">
-                                    <img src="/uploads/logo.png" alt="Logo" className="h-24 print:h-16 w-auto object-contain" />
+                                    <img src={`${process.env.BASE_PATH || ''}/uploads/logo.png`} alt="Logo" className="h-24 print:h-16 w-auto object-contain" />
                                 </div>
 
                                 {/* Right: Payment Details */}

@@ -53,7 +53,7 @@ export default function TeacherLoginPage() {
                             transition={{ duration: 0.8 }}
                             className="bg-white p-4 rounded-3xl shadow-2xl ring-1 ring-slate-100 mb-6"
                         >
-                            <img src="/uploads/logo.png" alt="Nexus Institute" className="h-16 w-auto" />
+                            <img src={`${process.env.BASE_PATH || ''}/uploads/logo.png`} alt="Nexus Institute" className="h-16 w-auto" />
                         </motion.div>
                         <h2 className="text-3xl font-black text-slate-900 tracking-tighter text-center leading-tight">
                             Teacher <span className="text-blue-600">Portal</span>
