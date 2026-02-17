@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { loginTeacher } from "@/lib/api-client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { User, Phone, LogIn, Loader2, ArrowLeft, ShieldCheck, Key } from "lucide-react";
@@ -23,23 +24,15 @@ export default function TeacherLoginPage() {
         setLoading(true);
 
         try {
-            const response = await fetch("/api/teacher/login", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({ name, phone }),
-            });
+            const user = await loginTeacher(name, phone);
 
-            const data = await response.json();
-
-            if (!response.ok) {
-                setError(data.error || "Login failed");
+            if (!user) {
+                setError("Invalid teacher credentials");
                 setLoading(false);
                 return;
             }
 
-            sessionStorage.setItem("teacher", JSON.stringify(data));
+            sessionStorage.setItem("teacher", JSON.stringify(user));
             router.push("/teacher");
         } catch (err) {
             setError("An error occurred. Please try again.");

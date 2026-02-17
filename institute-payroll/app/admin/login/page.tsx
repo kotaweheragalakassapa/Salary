@@ -3,6 +3,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { loginAdmin } from "@/lib/api-client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { User, Lock, LogIn, Loader2, ArrowLeft, ShieldCheck, Key } from "lucide-react";
@@ -24,24 +25,16 @@ export default function AdminLoginPage() {
         setLoading(true);
 
         try {
-            const response = await fetch("/api/admin/login", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({ username, password }),
-            });
+            const user = await loginAdmin(username, password);
 
-            const data = await response.json();
-
-            if (!response.ok) {
-                setError(data.error || "Login failed");
+            if (!user) {
+                setError("Invalid admin credentials");
                 setLoading(false);
                 return;
             }
 
             // In a real app, use HTTP-only cookies or secure tokens
-            sessionStorage.setItem("admin", JSON.stringify(data));
+            sessionStorage.setItem("admin", JSON.stringify(user));
             router.push("/admin/dashboard");
         } catch (err) {
             setError("An error occurred. Please try again.");

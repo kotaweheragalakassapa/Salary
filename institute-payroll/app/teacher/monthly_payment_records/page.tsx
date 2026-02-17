@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { format, addMonths, subMonths, startOfMonth } from "date-fns";
+import { getSalaryReport } from "@/lib/api-client";
 
 interface DetailByClass {
     className: string;
@@ -39,7 +40,7 @@ interface DeductionDetail {
     type: string;
     amount: number;
     date: string;
-    description: string;
+    description?: string;
 }
 
 interface TeacherSalaryData {
@@ -88,8 +89,7 @@ export default function MonthlyPaymentRecords() {
         setLoading(true);
         try {
             const dateStr = format(startOfMonth(date), "yyyy-MM-dd");
-            const response = await fetch(`/api/salary?date=${dateStr}`);
-            const data = await response.json();
+            const data = await getSalaryReport(dateStr);
 
             // Find the specific teacher's data
             // Checking both item.teacher.id and item.teacherId for compatibility

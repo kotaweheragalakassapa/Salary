@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { getSalaryReport } from "@/lib/api-client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardTitle, CardHeader } from "@/components/ui/card";
@@ -29,8 +30,7 @@ export default function SalaryPage() {
         // Send 01 as day to satisfy date parsing
         const dateQuery = `${month}-01`;
         try {
-            const res = await fetch(`/api/salary?date=${dateQuery}`);
-            const data = await res.json();
+            const data = await getSalaryReport(dateQuery);
             setSalaries(data);
         } catch (e) {
             console.error(e);

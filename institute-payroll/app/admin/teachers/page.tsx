@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { getTeachers, createTeacher, deleteTeacher } from "@/lib/api-client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Navbar } from "@/components/Navbar";
@@ -25,39 +26,29 @@ export default function TeachersPage() {
     const [loading, setLoading] = useState(false);
 
     useEffect(() => {
-        fetch("/api/teachers")
-            .then((res) => res.json())
-            .then((data) => {
-                if (Array.isArray(data)) {
-                    setTeachers(data);
-                } else {
-                    console.error("Teachers API returned non-array data:", data);
-                }
-            });
+        getTeachers().then(setTeachers);
     }, []);
 
     const addTeacher = async () => {
         if (!newName) return;
         setLoading(true);
-        const res = await fetch("/api/teachers", {
-            method: "POST",
-            body: JSON.stringify({ name: newName, phone: newPhone }),
-        });
-        const saved = await res.json();
-        if (saved && !saved.error) {
-            setTeachers([...teachers, saved]);
-            setNewName("");
-            setNewPhone("");
-        } else {
-            alert(saved.error || "Failed to add teacher");
+        try {
+            const saved = await createTeacher({ name: newName, phone: newPhone });
+            if (saved) {
+                setTeachers([...teachers, saved]);
+                setNewName("");
+                setNewPhone("");
+            }
+        } catch (e) {
+            alert("Failed to add teacher");
         }
         setLoading(false);
     };
 
-    const deleteTeacher = async (id: number) => {
+    const handleDeleteTeacher = async (id: number) => {
         if (!confirm("Are you sure you want to delete this teacher? This will remove all their payment records!")) return;
-        const res = await fetch(`/api/teachers?id=${id}`, { method: "DELETE" });
-        if (res.ok) {
+        const success = await deleteTeacher(id);
+        if (success) {
             setTeachers(teachers.filter(t => t.id !== id));
         } else {
             alert("Failed to delete teacher. They might have active records or rates.");
@@ -182,7 +173,7 @@ export default function TeachersPage() {
                                                         </div>
 
                                                         <div className="flex items-center gap-3 w-full md:w-auto">
-                                                            <Link href={`/admin/teachers/${teacher.id}`} className="flex-1 md:flex-none">
+                                                            <Link href={`/admin/teachers/details?id=${teacher.id}`} className="flex-1 md:flex-none">
                                                                 <Button variant="outline" className="w-full md:w-auto bg-white/80 border-slate-100 hover:border-slate-900 rounded-2xl h-14 px-10 font-black text-slate-900 flex items-center gap-2 group-hover:bg-slate-900 group-hover:text-white group-hover:shadow-xl group-hover:shadow-slate-200 transition-all duration-300">
                                                                     <Settings className="h-5 w-5" /> Manage
                                                                 </Button>
@@ -190,7 +181,7 @@ export default function TeachersPage() {
                                                             <Button
                                                                 variant="ghost"
                                                                 className="h-14 w-14 rounded-2xl text-red-500 hover:text-white hover:bg-red-500 shadow-sm border border-transparent hover:border-red-600 transition-all duration-300"
-                                                                onClick={() => deleteTeacher(teacher.id)}
+                                                                onClick={() => handleDeleteTeacher(teacher.id)}
                                                             >
                                                                 <Trash2 className="h-6 w-6" />
                                                             </Button>

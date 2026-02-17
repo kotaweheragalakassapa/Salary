@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Navbar } from "@/components/Navbar";
 import { Key, User, Eye, EyeOff, Save, RefreshCw, Lock, Shield, Users as UsersIcon } from "lucide-react";
+import { getTeachers, getUsers, updateUser, updateTeacher } from "@/lib/api-client";
 
 interface Teacher {
     id: number;
@@ -44,16 +45,13 @@ export default function CredentialsPage() {
     const fetchAllData = async () => {
         setLoading(true);
         try {
-            const [teachersRes, usersRes] = await Promise.all([
-                fetch("/api/teachers/credentials"),
-                fetch("/api/users")
+            const [teachersData, usersData] = await Promise.all([
+                getTeachers(),
+                getUsers()
             ]);
 
-            const teachersData = await teachersRes.json();
-            const usersData = await usersRes.json();
-
-            setTeachers(teachersData);
-            setUsers(usersData);
+            setTeachers(teachersData as any);
+            setUsers(usersData as any);
         } catch (error) {
             console.error("Failed to fetch data:", error);
         } finally {
@@ -85,19 +83,23 @@ export default function CredentialsPage() {
 
         try {
             const credentials = editing[key];
-            const endpoint = type === 'teacher' ? "/api/teachers/credentials" : "/api/users";
+            let success = false;
 
-            const response = await fetch(endpoint, {
-                method: "PUT",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    id,
+            if (type === 'teacher') {
+                const updated = await updateTeacher(id, {
                     username: credentials.username,
-                    password: credentials.password,
-                }),
-            });
+                    password: credentials.password
+                });
+                success = !!updated;
+            } else {
+                const updated = await updateUser(id, {
+                    username: credentials.username,
+                    password: credentials.password
+                });
+                success = !!updated;
+            }
 
-            if (response.ok) {
+            if (success) {
                 await fetchAllData();
                 cancelEditing(id, type);
             } else {
@@ -126,17 +128,12 @@ export default function CredentialsPage() {
         const key = `teacher-${teacherId}`;
         setSavingIds(new Set(savingIds).add(key));
         try {
-            const response = await fetch("/api/teachers/credentials", {
-                method: "PUT",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    id: teacherId,
-                    username: teacher.name,
-                    password: teacher.phone,
-                }),
+            const updated = await updateTeacher(teacherId, {
+                username: teacher.name,
+                password: teacher.phone
             });
 
-            if (response.ok) {
+            if (updated) {
                 await fetchAllData();
             } else {
                 alert("Failed to reset credentials");

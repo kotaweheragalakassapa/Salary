@@ -19,6 +19,7 @@ import {
     Cell
 } from "recharts";
 import { Download, TrendingUp, DollarSign, Users, PieChart as PieChartIcon } from "lucide-react";
+import { getSalaryReport } from "@/lib/api-client";
 
 interface SalaryData {
     teacher: { id: number; name: string };
@@ -46,10 +47,9 @@ export default function ReportsPage() {
     const fetchReportData = async () => {
         setLoading(true);
         try {
-            const res = await fetch(`/api/salary?date=${month}-01`);
-            const json = await res.json();
-            if (Array.isArray(json)) {
-                setData(json);
+            const data = await getSalaryReport(`${month}-01`);
+            if (Array.isArray(data)) {
+                setData(data as any);
             } else {
                 console.error("Invalid data format received");
                 setData([]);

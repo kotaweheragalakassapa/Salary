@@ -17,6 +17,7 @@ import { useRouter } from "next/navigation";
 import { AnimatedBackground } from "@/components/VisualEffects/AnimatedBackground";
 import { GlassCard } from "@/components/VisualEffects/GlassCard";
 import { PageTransition, StaggerContainer, StaggerItem } from "@/components/VisualEffects/PageTransitions";
+import { getSalaryReport } from "@/lib/api-client";
 
 
 interface Teacher {
@@ -59,8 +60,7 @@ export default function TeacherDashboardPage() {
     const fetchSalaryData = async (teacherId: number) => {
         try {
             const month = new Date().toISOString().slice(0, 7) + "-01";
-            const response = await fetch(`/api/salary?date=${month}`);
-            const data = await response.json();
+            const data = await getSalaryReport(month);
 
             // Find this teacher's salary data
             const teacherSalary = data.find((item: any) => item.teacherId === teacherId);

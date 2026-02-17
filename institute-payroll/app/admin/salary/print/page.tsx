@@ -4,6 +4,7 @@ import { useEffect, useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Printer } from "lucide-react";
+import { getSalaryReport } from "@/lib/api-client";
 
 export const dynamic = 'force-dynamic';
 
@@ -58,14 +59,15 @@ function SalarySlipContent() {
     useEffect(() => {
         if (month) {
             setLoading(true);
-            fetch(`/api/salary?date=${month}-01`)
-                .then(res => res.json())
-                .then((data: SalaryData[]) => {
+            getSalaryReport(`${month}-01`)
+                .then((data) => {
+                    const typedData = data as any; // Temporary casting until strict types
                     if (teacherId) {
-                        const tData = data.find((d: any) => d.teacher.id.toString() === teacherId);
+                        // eslint-disable-next-line
+                        const tData = typedData.find((d: any) => d.teacher.id.toString() === teacherId);
                         setAllData(tData ? [tData] : []);
                     } else {
-                        setAllData(data);
+                        setAllData(typedData);
                     }
                 })
                 .finally(() => setLoading(false));

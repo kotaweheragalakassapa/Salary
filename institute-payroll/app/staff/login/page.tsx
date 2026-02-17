@@ -3,6 +3,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { loginStaff } from "@/lib/api-client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { User, Lock, LogIn, Loader2, ArrowLeft, ShieldCheck, Key, Calculator } from "lucide-react";
@@ -24,23 +25,15 @@ export default function StaffLoginPage() {
         setLoading(true);
 
         try {
-            const response = await fetch("/api/staff/login", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({ username, password }),
-            });
+            const user = await loginStaff(username, password);
 
-            const data = await response.json();
-
-            if (!response.ok) {
-                setError(data.error || "Login failed");
+            if (!user) {
+                setError("Invalid staff credentials");
                 setLoading(false);
                 return;
             }
 
-            sessionStorage.setItem("staff", JSON.stringify(data));
+            sessionStorage.setItem("staff", JSON.stringify(user));
             router.push("/staff/collection");
         } catch (err) {
             setError("An error occurred. Please try again.");

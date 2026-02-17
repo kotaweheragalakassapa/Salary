@@ -16,6 +16,7 @@ import {
     Star
 } from "lucide-react";
 import Link from "next/link";
+import { getTeacherById } from "@/lib/api-client";
 
 interface ClassDetail {
     id: number;
@@ -52,9 +53,8 @@ export default function ClassDetailsPage() {
 
     const fetchTeacherDetails = async (teacherId: number) => {
         try {
-            const response = await fetch(`/api/teachers?id=${teacherId}`);
-            const data = await response.json();
-            setTeacher(data);
+            const data = await getTeacherById(teacherId);
+            setTeacher(data as any);
         } catch (error) {
             console.error("Error fetching class details:", error);
         } finally {

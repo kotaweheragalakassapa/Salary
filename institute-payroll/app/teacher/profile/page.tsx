@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { updateTeacher } from "@/lib/api-client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -68,27 +69,18 @@ export default function TeacherProfilePage() {
         setSuccess(false);
 
         try {
-            const response = await fetch("/api/teacher/profile", {
-                method: "PUT",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({
-                    id: teacher.id,
-                    name,
-                    address,
-                    image,
-                }),
+            const updated = await updateTeacher(teacher.id, {
+                name,
+                address,
+                image: image || undefined,
             });
 
-            const data = await response.json();
-
-            if (!response.ok) {
-                throw new Error(data.error || "Failed to update profile");
+            if (!updated) {
+                throw new Error("Failed to update profile");
             }
 
             // Update session storage with data from server
-            const updatedTeacher = { ...teacher, ...data.teacher };
+            const updatedTeacher = { ...teacher, ...updated };
             sessionStorage.setItem("teacher", JSON.stringify(updatedTeacher));
             setTeacher(updatedTeacher);
 
@@ -97,10 +89,6 @@ export default function TeacherProfilePage() {
 
             // Refresh the page to update the layout/navbar
             router.refresh();
-            // Small delay to allow session storage to persist before reload
-            setTimeout(() => {
-                window.location.reload();
-            }, 500);
         } catch (err: any) {
             setError(err.message);
         } finally {

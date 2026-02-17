@@ -1,12 +1,13 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardTitle, CardHeader } from "@/components/ui/card";
 import { Navbar } from "@/components/Navbar";
-import { useParams, useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { ArrowLeft, Save } from "lucide-react";
+import { getTeacherById, getClasses, addRate, deleteRate, addDeduction } from "@/lib/api-client";
 
 interface Teacher {
     id: number;
@@ -19,8 +20,9 @@ interface ClassModel {
     name: string;
 }
 
-export default function TeacherDetailsPage() {
-    const params = useParams();
+function TeacherDetailsContent() {
+    const searchParams = useSearchParams();
+    const id = searchParams.get("id");
     const router = useRouter();
     const [teacher, setTeacher] = useState<Teacher | null>(null);
     const [classes, setClasses] = useState<ClassModel[]>([]);
@@ -35,39 +37,34 @@ export default function TeacherDetailsPage() {
     const [deductionDesc, setDeductionDesc] = useState("");
 
     const refreshData = async () => {
+        if (!id) return;
         try {
-            const refresh = await fetch(`/api/teachers?id=${params.id}`);
-            if (!refresh.ok) throw new Error("Failed to fetch teacher");
-            const data = await refresh.json();
-            if (data) setTeacher(data);
-            else router.push("/admin/teachers"); // Redirect if not found
+            const data = await getTeacherById(parseInt(id));
+            if (data) setTeacher(data as any);
+            else router.push("/admin/teachers");
         } catch (error) {
             console.error(error);
-            // Optionally handle error state here
         }
     };
 
     useEffect(() => {
-        refreshData();
-        fetch("/api/classes")
-            .then((res) => res.json())
-            .then((data) => setClasses(data));
-    }, [params.id]);
+        if (id) {
+            refreshData();
+            getClasses().then(data => setClasses(data as any));
+        }
+    }, [id]);
 
-    const addRate = async () => {
+    const handleAddRate = async () => {
         if (!selectedClass || !percentage || !teacher) return;
         setLoading(true);
 
-        const res = await fetch("/api/rates", {
-            method: "POST",
-            body: JSON.stringify({
-                teacherId: teacher.id,
-                classId: selectedClass,
-                percentage: percentage
-            }),
+        const success = await addRate({
+            teacherId: teacher.id,
+            classId: parseInt(selectedClass),
+            percentage: parseFloat(percentage)
         });
 
-        if (res.ok) {
+        if (success) {
             await refreshData();
             setSelectedClass("");
             setPercentage("");
@@ -75,21 +72,19 @@ export default function TeacherDetailsPage() {
         setLoading(false);
     };
 
-    const addDeduction = async () => {
+    const handleAddDeduction = async () => {
         if (!deductionAmount || !teacher) return;
         setLoading(true);
-        const res = await fetch("/api/deductions", {
-            method: "POST",
-            body: JSON.stringify({
-                teacherId: teacher.id,
-                type: deductionType,
-                amount: parseFloat(deductionAmount),
-                description: deductionDesc,
-                date: new Date()
-            })
+
+        const success = await addDeduction({
+            teacherId: teacher.id,
+            type: deductionType,
+            amount: parseFloat(deductionAmount),
+            description: deductionDesc,
+            date: new Date().toISOString()
         });
 
-        if (res.ok) {
+        if (success) {
             await refreshData();
             setDeductionAmount("");
             setDeductionDesc("");
@@ -97,11 +92,11 @@ export default function TeacherDetailsPage() {
         setLoading(false);
     };
 
-    const removeRate = async (rateId: number) => {
+    const handleRemoveRate = async (rateId: number) => {
         if (!confirm("Remove this class from this teacher?")) return;
         setLoading(true);
-        const res = await fetch(`/api/rates?id=${rateId}`, { method: "DELETE" });
-        if (res.ok) {
+        const success = await deleteRate(rateId);
+        if (success) {
             await refreshData();
         }
         setLoading(false);
@@ -169,7 +164,7 @@ export default function TeacherDetailsPage() {
                                         <span className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 font-bold text-xl">%</span>
                                     </div>
                                 </div>
-                                <Button className="w-full py-6 text-lg font-semibold rounded-xl shadow-lg shadow-blue-200 hover:shadow-blue-300 transition-all active:scale-[0.98]" onClick={addRate} disabled={loading || !selectedClass || !percentage}>
+                                <Button className="w-full py-6 text-lg font-semibold rounded-xl shadow-lg shadow-blue-200 hover:shadow-blue-300 transition-all active:scale-[0.98]" onClick={handleAddRate} disabled={loading || !selectedClass || !percentage}>
                                     {loading ? "Processing..." : (teacher.rates.some(r => r.classId.toString() === selectedClass) ? "Update Rate" : "Assign Class")}
                                 </Button>
                                 {selectedClass && (
@@ -226,7 +221,7 @@ export default function TeacherDetailsPage() {
                                                                 variant="ghost"
                                                                 size="sm"
                                                                 className="rounded-lg h-9 px-3 font-medium text-red-500 hover:text-red-700 hover:bg-red-50"
-                                                                onClick={() => removeRate(rate.id)}
+                                                                onClick={() => handleRemoveRate(rate.id)}
                                                             >
                                                                 Remove
                                                             </Button>
@@ -269,7 +264,7 @@ export default function TeacherDetailsPage() {
                                                         variant="ghost"
                                                         size="sm"
                                                         className="h-10 px-3 rounded-xl text-red-500 bg-red-50 hover:bg-red-100 font-bold"
-                                                        onClick={() => removeRate(rate.id)}
+                                                        onClick={() => handleRemoveRate(rate.id)}
                                                     >
                                                         Remove
                                                     </Button>
@@ -289,5 +284,12 @@ export default function TeacherDetailsPage() {
             </div>
         </div>
     );
+}
 
+export default function TeacherDetailsPage() {
+    return (
+        <Suspense fallback={<div>Loading...</div>}>
+            <TeacherDetailsContent />
+        </Suspense>
+    );
 }

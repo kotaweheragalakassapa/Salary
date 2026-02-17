@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { getSalaryReport, getTeachers } from "@/lib/api-client";
 import { Navbar } from "@/components/Navbar";
 import { Users, BookOpen, Banknote, FileText, TrendingUp, ArrowRight, Shield, Activity, PieChart } from "lucide-react";
 import { AnimatedBackground } from "@/components/VisualEffects/AnimatedBackground";
@@ -21,13 +22,10 @@ export default function DashboardPage() {
         const fetchData = async () => {
             try {
                 const month = new Date().toISOString().slice(0, 7) + "-01";
-                const [salaryRes, teachersRes] = await Promise.all([
-                    fetch(`/api/salary?date=${month}`),
-                    fetch(`/api/teachers`)
+                const [salaryData, teachersData] = await Promise.all([
+                    getSalaryReport(month),
+                    getTeachers()
                 ]);
-
-                const salaryData = await salaryRes.json();
-                const teachersData = await teachersRes.json();
 
                 // Calculate totals from salary data
                 const totals = salaryData.reduce((acc: any, curr: any) => {

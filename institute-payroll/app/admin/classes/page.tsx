@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { getClasses, createClass, updateClass, deleteClass } from "@/lib/api-client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardTitle, CardHeader } from "@/components/ui/card";
@@ -22,9 +23,7 @@ export default function ClassesPage() {
     const [editingClassId, setEditingClassId] = useState<number | null>(null);
 
     useEffect(() => {
-        fetch("/api/classes")
-            .then((res) => res.json())
-            .then((data) => setClasses(data));
+        getClasses().then(setClasses);
     }, []);
 
     const addClass = async () => {
@@ -40,31 +39,27 @@ export default function ClassesPage() {
             instituteFeePercentage: parseFloat(instituteFee) || 0
         };
 
-        if (editingClassId) {
-            // Update existing class
-            const res = await fetch("/api/classes", {
-                method: "PUT",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ ...payload, id: editingClassId }),
-            });
-
-            if (res.ok) {
-                const updated = await res.json();
-                setClasses(classes.map(c => c.id === editingClassId ? updated : c));
-                resetForm();
+        try {
+            if (editingClassId) {
+                // Update existing class
+                const updated = await updateClass(editingClassId, payload);
+                if (updated) {
+                    setClasses(classes.map(c => c.id === editingClassId ? updated : c));
+                    resetForm();
+                } else {
+                    alert("Failed to update class");
+                }
             } else {
-                alert("Failed to update class");
+                // Create new class
+                const saved = await createClass(payload);
+                if (saved) {
+                    setClasses([...classes, saved]);
+                    resetForm();
+                }
             }
-        } else {
-            // Create new class
-            const res = await fetch("/api/classes", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(payload),
-            });
-            const saved = await res.json();
-            setClasses([...classes, saved]);
-            resetForm();
+        } catch (e) {
+            console.error(e);
+            alert("Operation failed");
         }
         setLoading(false);
     };
@@ -83,10 +78,10 @@ export default function ClassesPage() {
         setEditingClassId(c.id);
     };
 
-    const deleteClass = async (id: number) => {
+    const handleDeleteClass = async (id: number) => {
         if (!confirm("Are you sure you want to delete this class? This may fail if it's assigned to teachers.")) return;
-        const res = await fetch(`/api/classes?id=${id}`, { method: "DELETE" });
-        if (res.ok) {
+        const success = await deleteClass(id);
+        if (success) {
             setClasses(classes.filter((c) => c.id !== id));
         } else {
             alert("Failed to delete class. It might have active collections or rates.");
@@ -206,7 +201,7 @@ export default function ClassesPage() {
                                                     variant="ghost"
                                                     size="sm"
                                                     className="text-red-500 hover:text-red-700 hover:bg-red-50 opacity-0 group-hover:opacity-100 transition-all rounded-xl"
-                                                    onClick={() => deleteClass(c.id)}
+                                                    onClick={() => handleDeleteClass(c.id)}
                                                 >
                                                     🗑️ Delete
                                                 </Button>

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { getTeachers, getDailyCollections, addDailyCollection, updateDailyCollection, deleteDailyCollection } from "@/lib/api-client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -44,14 +45,13 @@ export default function CollectionPage() {
 
     const fetchData = async () => {
         try {
-            const [teachersRes, collectionsRes] = await Promise.all([
-                fetch("/api/teachers"),
-                fetch("/api/collection")
+            const [teachersData, collectionsData] = await Promise.all([
+                getTeachers(),
+                getDailyCollections()
             ]);
-            const teachersData = await teachersRes.json();
-            const collectionsData = await collectionsRes.json();
-            setTeachers(teachersData);
-            setCollections(collectionsData);
+            // Force cast to match local interface - in real app, align types properly
+            setTeachers(teachersData as any);
+            setCollections(collectionsData as any);
         } catch (err) {
             console.error(err);
         }
@@ -88,11 +88,10 @@ export default function CollectionPage() {
         const feePerStudent = classRate?.class.feePerStudent || 0;
         const calculatedAmount = feePerStudent * parseInt(studentCount);
 
-        const payload = {
-            id: editingId,
+        const basePayload = {
             date: date,
-            teacherId: selectedTeacher,
-            classId: selectedClass,
+            teacherId: parseInt(selectedTeacher),
+            classId: parseInt(selectedClass),
             studentCount: parseInt(studentCount),
             amount: calculatedAmount,
             tuteCostPerStudent: parseFloat(tuteCostPerStudent) || 0,
@@ -100,14 +99,19 @@ export default function CollectionPage() {
         };
 
         try {
-            const res = await fetch("/api/collection", {
-                method: editingId ? "PUT" : "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(payload),
-            });
+            let success = false;
 
-            if (res.ok) {
-                setMessage(editingId ? "Collection Updated!" : "Collection Saved!");
+            if (editingId) {
+                const updated = await updateDailyCollection(editingId, basePayload);
+                success = !!updated;
+                if (success) setMessage("Collection Updated!");
+            } else {
+                const saved = await addDailyCollection(basePayload);
+                success = !!saved;
+                if (success) setMessage("Collection Saved!");
+            }
+
+            if (success) {
                 resetForm();
                 fetchData();
             } else {
@@ -135,8 +139,8 @@ export default function CollectionPage() {
     const handleDelete = async (id: number) => {
         if (!confirm("Are you sure you want to delete this entry?")) return;
         try {
-            const res = await fetch(`/api/collection?id=${id}`, { method: "DELETE" });
-            if (res.ok) {
+            const success = await deleteDailyCollection(id);
+            if (success) {
                 fetchData();
             } else {
                 alert("Failed to delete.");
