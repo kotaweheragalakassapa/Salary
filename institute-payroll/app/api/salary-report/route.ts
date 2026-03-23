@@ -44,21 +44,28 @@ export async function GET(req: Request) {
             let totalTuteCost = 0;
             let totalPostalFee = 0;
             let totalInstituteFee = 0;
+            let totalDailyOtherDeductions = 0;
             const collectionDetails: any[] = [];
 
             teacher.collections.forEach(collection => {
                 const cls = collection.class;
                 const studentCount = collection.studentCount || 0;
-                const tuteCost = studentCount * (collection.tuteCostPerStudent || 0);
-                const postalFee = studentCount * (collection.postalFeePerStudent || 0);
+                const tuteCost = collection.isTuteCostTotal 
+                    ? (collection.tuteCostPerStudent || 0)
+                    : studentCount * (collection.tuteCostPerStudent || 0);
+                const postalFee = collection.isPostalFeeTotal
+                    ? (collection.postalFeePerStudent || 0)
+                    : studentCount * (collection.postalFeePerStudent || 0);
                 const instFeePercent = cls.instituteFeePercentage || 0;
                 const instituteFee = collection.amount * (instFeePercent / 100);
+                const otherDeductions = collection.otherDeductions || 0;
 
                 totalCollection += collection.amount;
                 totalStudents += studentCount;
                 totalTuteCost += tuteCost;
                 totalPostalFee += postalFee;
                 totalInstituteFee += instituteFee;
+                totalDailyOtherDeductions += otherDeductions;
 
                 collectionDetails.push({
                     date: collection.date,
@@ -71,7 +78,8 @@ export async function GET(req: Request) {
                     instituteFeePercentage: instFeePercent,
                     tuteCostTotal: tuteCost,
                     postalFeeTotal: postalFee,
-                    instituteFeeTotal: instituteFee
+                    instituteFeeTotal: instituteFee,
+                    otherDeductions: otherDeductions
                 });
             });
 
@@ -84,6 +92,7 @@ export async function GET(req: Request) {
                     existing.totalTuteCost += curr.tuteCostTotal;
                     existing.totalPostalFee += curr.postalFeeTotal;
                     existing.totalInstituteFee += curr.instituteFeeTotal;
+                    existing.totalOtherDeductions += curr.otherDeductions;
                     existing.grossPay += curr.amount;
                 } else {
                     acc.push({
@@ -97,13 +106,14 @@ export async function GET(req: Request) {
                         totalTuteCost: curr.tuteCostTotal,
                         totalPostalFee: curr.postalFeeTotal,
                         totalInstituteFee: curr.instituteFeeTotal,
+                        totalOtherDeductions: curr.otherDeductions,
                         grossPay: curr.amount,
                     });
                 }
                 return acc;
             }, []);
 
-            const automaticDeductions = totalTuteCost + totalPostalFee + totalInstituteFee;
+            const automaticDeductions = totalTuteCost + totalPostalFee + totalInstituteFee + totalDailyOtherDeductions;
             const manualDeductions = teacher.deductions.reduce((sum, d) => sum + d.amount, 0);
             const totalDeductions = automaticDeductions + manualDeductions;
             const grossPay = totalCollection;
@@ -120,6 +130,7 @@ export async function GET(req: Request) {
                     totalTuteCost,
                     totalPostalFee,
                     totalInstituteFee,
+                    totalDailyOtherDeductions,
                     automaticDeductions,
                     manualDeductions,
                     totalDeductions,

@@ -39,6 +39,9 @@ export async function POST(req: Request) {
                 studentCount: parseInt(body.studentCount),
                 tuteCostPerStudent: parseFloat(body.tuteCostPerStudent || 0),
                 postalFeePerStudent: parseFloat(body.postalFeePerStudent || 0),
+                isTuteCostTotal: Boolean(body.isTuteCostTotal),
+                isPostalFeeTotal: Boolean(body.isPostalFeeTotal),
+                otherDeductions: parseFloat(body.otherDeductions || 0),
                 teacherId: parseInt(body.teacherId),
                 classId: parseInt(body.classId)
             }

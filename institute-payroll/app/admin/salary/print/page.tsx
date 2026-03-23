@@ -18,6 +18,7 @@ interface SalaryData {
         totalTuteCost: number;
         totalPostalFee: number;
         totalInstituteFee: number;
+        totalDailyOtherDeductions?: number;
         automaticDeductions: number;
         manualDeductions: number;
         totalDeductions: number;
@@ -219,6 +220,12 @@ function SalarySlipContent() {
                                             <span className="text-slate-600">Institute Fee</span>
                                             <span className="font-bold text-rose-600">Rs. {data.stats.totalInstituteFee?.toLocaleString() || 0}</span>
                                         </div>
+                                        {data.stats.totalDailyOtherDeductions ? (
+                                        <div className="flex justify-between text-sm py-1 mt-1 border-t border-orange-100 pt-1">
+                                            <span className="text-slate-600">Other Class Deductions</span>
+                                            <span className="font-bold text-red-500">Rs. {data.stats.totalDailyOtherDeductions.toLocaleString()}</span>
+                                        </div>
+                                        ) : null}
                                         <div className="flex justify-between text-sm pt-2 mt-2 border-t border-orange-200">
                                             <span className="font-bold text-slate-700">Subtotal</span>
                                             <span className="font-bold text-slate-900">Rs. {data.stats.automaticDeductions?.toLocaleString() || 0}</span>

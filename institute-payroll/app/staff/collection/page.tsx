@@ -24,6 +24,9 @@ interface Collection {
     amount: number;
     tuteCostPerStudent: number;
     postalFeePerStudent: number;
+    isTuteCostTotal?: boolean;
+    isPostalFeeTotal?: boolean;
+    otherDeductions?: number;
     teacher: { name: string };
     class: { name: string; feePerStudent: number };
 }
@@ -36,6 +39,9 @@ export default function CollectionPage() {
     const [studentCount, setStudentCount] = useState<string>("");
     const [tuteCostPerStudent, setTuteCostPerStudent] = useState<string>("");
     const [postalFeePerStudent, setPostalFeePerStudent] = useState<string>("");
+    const [isTuteCostTotal, setIsTuteCostTotal] = useState<boolean>(false);
+    const [isPostalFeeTotal, setIsPostalFeeTotal] = useState<boolean>(false);
+    const [otherDeductions, setOtherDeductions] = useState<string>("");
     const [date, setDate] = useState<string>(new Date().toISOString().split("T")[0]);
     const [loading, setLoading] = useState(false);
     const [message, setMessage] = useState("");
@@ -67,6 +73,9 @@ export default function CollectionPage() {
         setStudentCount("");
         setTuteCostPerStudent("");
         setPostalFeePerStudent("");
+        setIsTuteCostTotal(false);
+        setIsPostalFeeTotal(false);
+        setOtherDeductions("");
         setDate(new Date().toISOString().split("T")[0]);
         setEditingId(null);
         setMessage("");
@@ -96,6 +105,9 @@ export default function CollectionPage() {
             amount: calculatedAmount,
             tuteCostPerStudent: parseFloat(tuteCostPerStudent) || 0,
             postalFeePerStudent: parseFloat(postalFeePerStudent) || 0,
+            isTuteCostTotal,
+            isPostalFeeTotal,
+            otherDeductions: parseFloat(otherDeductions) || 0,
         };
 
         try {
@@ -132,6 +144,9 @@ export default function CollectionPage() {
         setStudentCount(c.studentCount.toString());
         setTuteCostPerStudent(c.tuteCostPerStudent.toString());
         setPostalFeePerStudent(c.postalFeePerStudent.toString());
+        setIsTuteCostTotal(c.isTuteCostTotal || false);
+        setIsPostalFeeTotal(c.isPostalFeeTotal || false);
+        setOtherDeductions(c.otherDeductions ? c.otherDeductions.toString() : "");
         setMessage("");
         window.scrollTo({ top: 0, behavior: 'smooth' });
     };
@@ -255,7 +270,17 @@ export default function CollectionPage() {
 
                                     <div className="grid grid-cols-2 gap-4">
                                         <div className="space-y-2">
-                                            <label className="text-xs font-black text-orange-500 uppercase tracking-widest ml-1">📄 Tute Cost (per student)</label>
+                                            <div className="flex justify-between items-center ml-1">
+                                                <label className="text-xs font-black text-orange-500 uppercase tracking-widest">📄 Tute Cost</label>
+                                                <select 
+                                                    value={isTuteCostTotal ? "total" : "per"}
+                                                    onChange={(e) => setIsTuteCostTotal(e.target.value === "total")}
+                                                    className="text-[10px] font-bold bg-orange-50 hover:bg-orange-100 text-orange-600 rounded-lg px-2 py-1 outline-none border-none transition-colors cursor-pointer"
+                                                >
+                                                    <option value="per">Per Student</option>
+                                                    <option value="total">Total for day</option>
+                                                </select>
+                                            </div>
                                             <Input
                                                 type="number"
                                                 placeholder="0.00"
@@ -269,7 +294,17 @@ export default function CollectionPage() {
                                             />
                                         </div>
                                         <div className="space-y-2">
-                                            <label className="text-xs font-black text-blue-500 uppercase tracking-widest ml-1">📮 Postal Fee (per student)</label>
+                                            <div className="flex justify-between items-center ml-1">
+                                                <label className="text-xs font-black text-blue-500 uppercase tracking-widest">📮 Postal Fee</label>
+                                                <select 
+                                                    value={isPostalFeeTotal ? "total" : "per"}
+                                                    onChange={(e) => setIsPostalFeeTotal(e.target.value === "total")}
+                                                    className="text-[10px] font-bold bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-lg px-2 py-1 outline-none border-none transition-colors cursor-pointer"
+                                                >
+                                                    <option value="per">Per Student</option>
+                                                    <option value="total">Total for day</option>
+                                                </select>
+                                            </div>
                                             <Input
                                                 type="number"
                                                 placeholder="0.00"
@@ -282,6 +317,20 @@ export default function CollectionPage() {
                                                 className="py-6 rounded-2xl border-blue-100 focus:ring-blue-500 transition-all shadow-sm text-lg font-black text-center text-blue-600"
                                             />
                                         </div>
+                                    </div>
+
+                                    <div className="space-y-2">
+                                        <label className="text-xs font-black text-red-500 uppercase tracking-widest ml-1">📉 Other Deductions (Total)</label>
+                                        <Input
+                                            type="number"
+                                            placeholder="0.00"
+                                            value={otherDeductions}
+                                            onChange={(e) => setOtherDeductions(e.target.value)}
+                                            min="0"
+                                            step="0.01"
+                                            disabled={!selectedClass}
+                                            className="py-6 rounded-2xl border-red-50 focus:ring-red-400 transition-all shadow-sm text-lg font-black text-center text-red-500"
+                                        />
                                     </div>
 
                                     {calculatedTotal > 0 && (
@@ -336,8 +385,11 @@ export default function CollectionPage() {
                                                 <p className="text-xl font-black text-blue-600">Rs. {c.amount.toLocaleString()}</p>
                                                 <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{c.studentCount} Students</p>
                                                 <div className="flex flex-col gap-0.5 mt-1">
-                                                    <p className="text-[10px] font-bold text-orange-500 whitespace-nowrap">Tute: Rs. {c.tuteCostPerStudent}/ea</p>
-                                                    <p className="text-[10px] font-bold text-blue-500 whitespace-nowrap">Mail: Rs. {c.postalFeePerStudent}/ea</p>
+                                                    <p className="text-[10px] font-bold text-orange-500 whitespace-nowrap">Tute: Rs. {c.tuteCostPerStudent}{c.isTuteCostTotal ? " (Total)" : "/ea"}</p>
+                                                    <p className="text-[10px] font-bold text-blue-500 whitespace-nowrap">Mail: Rs. {c.postalFeePerStudent}{c.isPostalFeeTotal ? " (Total)" : "/ea"}</p>
+                                                    {c.otherDeductions ? (
+                                                        <p className="text-[10px] font-bold text-red-500 whitespace-nowrap">Other: Rs. {c.otherDeductions}</p>
+                                                    ) : null}
                                                 </div>
                                             </div>
                                         </div>

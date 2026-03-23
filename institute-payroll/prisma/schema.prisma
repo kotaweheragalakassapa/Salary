@@ -64,6 +64,9 @@ model DailyCollection {
   studentCount   Int      @default(0) // Number of students present on this day
   tuteCostPerStudent Float  @default(0) // Added for daily variation
   postalFeePerStudent Float @default(0) // Added for daily variation
+  isTuteCostTotal Boolean @default(false)
+  isPostalFeeTotal Boolean @default(false)
+  otherDeductions Float @default(0)
   teacherId      Int
   classId        Int
   
