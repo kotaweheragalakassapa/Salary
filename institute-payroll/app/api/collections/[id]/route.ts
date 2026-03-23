@@ -10,7 +10,17 @@ export async function PATCH(
         const body = await req.json();
         const updated = await prisma.dailyCollection.update({
             where: { id },
-            data: body
+            data: {
+                ...body,
+                date: body.date ? new Date(body.date) : undefined,
+                amount: body.amount !== undefined ? parseFloat(body.amount) : undefined,
+                studentCount: body.studentCount !== undefined ? parseInt(body.studentCount) : undefined,
+                tuteCostPerStudent: body.tuteCostPerStudent !== undefined ? parseFloat(body.tuteCostPerStudent) : undefined,
+                postalFeePerStudent: body.postalFeePerStudent !== undefined ? parseFloat(body.postalFeePerStudent) : undefined,
+                otherDeductions: body.otherDeductions !== undefined ? parseFloat(body.otherDeductions) : undefined,
+                teacherId: body.teacherId !== undefined ? parseInt(body.teacherId) : undefined,
+                classId: body.classId !== undefined ? parseInt(body.classId) : undefined
+            }
         });
         return NextResponse.json(updated);
     } catch (error) {
